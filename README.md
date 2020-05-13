@@ -1,0 +1,1 @@
+# lineaarisen-regressiomallin-oletukset
