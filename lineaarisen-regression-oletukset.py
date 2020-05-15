@@ -11,7 +11,7 @@
 
 # Lineaarista regressiota sovellettaessa seuraavien viiden oletuksen on oltava voimassa:
 # <ul>
-#     <li>Tarkastellaan lineaarista riippuvuutta.</li>
+#     <li>Muuttujien välillä tulee olla lineaarinen riippuvuus.</li>
 #     <li>Kaikki muuttujat ovat normaalijakautuneet.</li>
 #     <li>Multikollineaarisuutta ei ole tai on korkeintaan hyvin vähän.</li>
 #     <li>Autokorrelaatiota ei ole tai sitä on vain vähän.</li>
@@ -34,7 +34,7 @@ get_ipython().run_line_magic('matplotlib', 'inline')
 import matplotlib.pyplot as plt
 plt.style.use('seaborn-whitegrid')
 
-from sklearn.datasets.samples_generator import make_regression
+from sklearn.datasets import make_regression
 
 
 # Luodaan seuraavaksi datajoukko sklearnin make_regression-funktion avulla. Seuraavassa pidetään <em>kohina</em>parametri (noise) alhaisena, jotta datajoukko seuraa lineaarista riippuvuutta. Kohinaparametri määrittää datajoukon keskihajonnan. Lopuksi piirretään muuttujat x1 ja y1 matplotlibin <em>plot</em>-funktiolla.
@@ -43,7 +43,7 @@ from sklearn.datasets.samples_generator import make_regression
 
 
 
-from sklearn.datasets.samples_generator import make_regression
+from sklearn.datasets import make_regression
 x1, y1 = make_regression(n_samples=100, n_features=1, noise=10)
 
 plt.plot(x1, y1, 'o', color = 'black');
@@ -83,7 +83,7 @@ plt.title("Lineaarinen yhteys puuttuu")
 
 # Seuraavassa esimerkissä käytetään scipy-kirjaston <em>probplot</em>-funktiota Q-Q-kuvion tekemiseen. Siinä verrataan valitsemamme muuttujan jakaumaa normaalijakaumaan.
 
-# In[5]:
+# In[4]:
 
 
 import scipy.stats as stats
@@ -102,7 +102,7 @@ plt.show()
 
 # Luodaan siis ensimmäisen esimerkin kaltainen tietojoukko, mutta nyt se palauttaa kolme x-muuttujaa. Muutetaan se array-taulukoksi Pandaksen tietokehyksessä ja käytetään <em>corr</em>-funktiota sarakemuuttujien keskinäisen korrelaation laskemiseen.
 
-# In[7]:
+# In[5]:
 
 
 #### Luodaan esimerkkitietojoukko, jossa on x-esiintymää
@@ -119,7 +119,7 @@ corr = df.corr()
 
 # Korrelaatiomatriisi on tallennettu muuttujaan <em>corr</em>. Tähän muuttujaan voidaan nyt soveltaa <em>coolwarm</em>-värikarttaa. Pienet arvot saavat tässä sinisen värin ja isommat arvot tulevat kuumemmiksi ja siis punaisiksi.
 
-# In[8]:
+# In[6]:
 
 
 corr.style.background_gradient(cmap='coolwarm')
@@ -152,6 +152,85 @@ corr.style.background_gradient(cmap='coolwarm')
 # 
 # <li><a href="https://www.reddit.com/r/learnmachinelearning/comments/byx9ez/the_four_assumptions_of_regression/">The four assumptions of regression</a></li>
 # </ul>
+
+# ### Testataan tätä Koneen osakkeeseen
+# 
+# Testataan yllä olevia oppeja konkreettiseen tilanteeseen.
+# 
+# Seuraavassa on indeksin OMX Helsinki 25 arvot vuoden 2015 alusta vuoden 2020 huhtikuun loppuun ja Kone Oyj:n osakkeen arvot samalta ajalta omissa csv-tiedostoissa.
+# 
+# Luetaan ne tietokehyksiin ja tehdään tarvittavat alkuvalmistelut.
+
+# In[7]:
+
+
+#Avataan tiedostot
+osake = pd.read_csv('http://www.haaga-helia.fi/~fie8lh101/Dataa/KoneOyj-2015-0101-2020-0430.csv', sep = ';', decimal = ',', usecols = [0,1,2,3,4,5,6,7,8,9,10], skiprows=1)
+markkinat = pd.read_csv('http://www.haaga-helia.fi/~fie8lh101/Dataa/OMXH25-2015-0101-2020-0430.csv', sep = ';', decimal = ',', usecols = [0,1,2,3], skiprows=1)
+
+#Lisätään aikaleimat
+osake.index = pd.to_datetime(osake['Date'], dayfirst=True)
+markkinat.index = pd.to_datetime(markkinat['Date'], dayfirst=True)
+
+#Järjestetään aikasarja vanhimmasta uusimpaan
+osake.sort_index(inplace = True)
+markkinat.sort_index(inplace = True)
+
+
+# In[8]:
+
+
+#### Tutustutaan dataan
+
+osake.head()
+
+
+# In[9]:
+
+
+#### Tutustutaan dataan
+
+markkinat.head()
+
+
+# #### Lineaarinen riippuvuus
+
+# Tarkastellaan seuraavaksi markkinaindeksin ja osakkeiden tuoton lineaarisuutta yllä olevan mukaisesti.
+
+# In[10]:
+
+
+#### Luetaan x-muuttujan arvot ja y-muuttujan arvot
+
+x_markkinat = markkinat['Closingprice']
+y_osake = osake['Closing price']
+
+
+# In[11]:
+
+
+plt.plot(x_markkinat, y_osake, 'o', color = 'black');
+plt.title("Markkinaindeksin ja osakkeen arvon yhteys")
+
+
+# Mitä mieltä olet, onko muuttujien välillä lineaarinen yhteys?
+
+# #### Normaalijakautuneisuus
+
+# Tarkistetaan seuraavaksi normaalijakautuneisuus
+
+# In[27]:
+
+
+stats.probplot(x_markkinat[:], dist="norm", plot=plt)
+plt.show()
+
+
+# In[28]:
+
+
+x_markkinat[:3]
+
 
 # In[ ]:
 
