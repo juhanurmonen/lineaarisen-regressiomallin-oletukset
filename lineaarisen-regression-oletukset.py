@@ -105,7 +105,7 @@ plt.show()
 # In[5]:
 
 
-#### Luodaan esimerkkitietojoukko, jossa on x-esiintymää
+#### Luodaan esimerkkitietojoukko, jossa on kolme x-esiintymää
 x3, y3 = make_regression(n_samples=100, n_features=3, noise=20)
 
 #### Muunnetaan nämä Pandaksen tietokehykseen
@@ -161,12 +161,12 @@ corr.style.background_gradient(cmap='coolwarm')
 # 
 # Luetaan ne tietokehyksiin ja tehdään tarvittavat alkuvalmistelut.
 
-# In[7]:
+# In[16]:
 
 
 #Avataan tiedostot
 osake = pd.read_csv('http://www.haaga-helia.fi/~fie8lh101/Dataa/KoneOyj-2015-0101-2020-0430.csv', sep = ';', decimal = ',', usecols = [0,1,2,3,4,5,6,7,8,9,10], skiprows=1)
-markkinat = pd.read_csv('http://www.haaga-helia.fi/~fie8lh101/Dataa/OMXH25-2015-0101-2020-0430.csv', sep = ';', decimal = ',', usecols = [0,1,2,3], skiprows=1)
+markkinat = pd.read_csv('http://www.haaga-helia.fi/~fie8lh101/Dataa/OMXH25-2015-0101-2020-0430.csv', sep = ';', decimal = ',', usecols = [0,1,2,3], thousands=',' , skiprows=1)
 
 #Lisätään aikaleimat
 osake.index = pd.to_datetime(osake['Date'], dayfirst=True)
@@ -185,10 +185,39 @@ markkinat.sort_index(inplace = True)
 osake.head()
 
 
-# In[9]:
+# In[17]:
 
 
 #### Tutustutaan dataan
+
+markkinat.head()
+
+
+# Indeksissä ovatkin tulleet pilkut tuhaterottomiksi jostain syystä. Korjataan vielä ne korvaamalla ne tyhjällä merkillä. Lopuksi muutetaan luvut float-tyyppisiksi.
+
+# In[20]:
+
+
+#### Muutetaan tuhaterottimina toimivat pilkut tyhjiksi merkeiksi
+
+markkinat['Highprice'] = markkinat['Highprice'].str.replace(',', '')
+markkinat['Lowprice'] = markkinat['Lowprice'].str.replace(',', '')
+markkinat['Closingprice'] = markkinat['Closingprice'].str.replace(',', '')
+
+
+
+# In[21]:
+
+
+#### Muutetaan luvut float-tyyppisiksi
+
+markkinat['Closingprice']=markkinat['Closingprice'].astype(float)
+
+
+# In[28]:
+
+
+#### Katsotaan nyt lopputulosta
 
 markkinat.head()
 
@@ -197,7 +226,7 @@ markkinat.head()
 
 # Tarkastellaan seuraavaksi markkinaindeksin ja osakkeiden tuoton lineaarisuutta yllä olevan mukaisesti.
 
-# In[10]:
+# In[22]:
 
 
 #### Luetaan x-muuttujan arvot ja y-muuttujan arvot
@@ -206,7 +235,7 @@ x_markkinat = markkinat['Closingprice']
 y_osake = osake['Closing price']
 
 
-# In[11]:
+# In[23]:
 
 
 plt.plot(x_markkinat, y_osake, 'o', color = 'black');
@@ -219,21 +248,58 @@ plt.title("Markkinaindeksin ja osakkeen arvon yhteys")
 
 # Tarkistetaan seuraavaksi normaalijakautuneisuus
 
-# In[27]:
+# In[32]:
 
 
-stats.probplot(x_markkinat[:], dist="norm", plot=plt)
+#### Koneen osake
+
+stats.probplot(y_osake, dist="norm", plot=plt)
 plt.show()
 
 
-# In[28]:
+# In[33]:
 
 
-x_markkinat[:3]
+#### Markkinaindeksi
+
+stats.probplot(x_markkinat, dist="norm", plot=plt)
+plt.show()
 
 
-# In[ ]:
+# #### Multikollineaarisuus
+# 
+# Tarkistetaan seuraavaksi multikollineaarisuus
+
+# In[31]:
 
 
+y_osake
 
+
+# In[43]:
+
+
+#### Luetaan arvot Pandaksen tietokehykseen
+
+df2 = pd.concat([x_markkinat,y_osake], axis=1)
+
+df2.columns = ['Markkinat','Osake']
+
+df2.head()
+
+
+# In[44]:
+
+
+#### Tehdään vielä korrelaatiomatriisi
+
+corr2 = df2.corr()
+
+
+# In[46]:
+
+
+#### Piirretään korrelaatiomatriisi
+
+corr2.style.background_gradient(cmap='coolwarm')
 
